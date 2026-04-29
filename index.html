@@ -39,20 +39,18 @@
                         playsinline 
                         preload="metadata"
                         poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1000">
+                        <!-- SOURCE: Generated Product Sales Video -->
                         <source src="https://assets.mixkit.co/videos/preview/mixkit-man-working-on-his-laptop-308-large.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                     
-                    <!-- Fallback / Pending Approval Message -->
-                    <div id="video-pending-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/90 pointer-events-none transition-opacity duration-500">
-                        <div class="bg-sky-600/20 text-sky-400 border border-sky-400/30 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">Product Video Pending Approval</div>
-                        <h3 class="text-white text-xl md:text-2xl font-black max-w-sm mb-2">48-Hour Cash Recovery Kit Sales Video</h3>
-                        <p class="text-slate-400 text-sm max-w-xs mb-6">This video will show local service business owners how to recover lost revenue using the 48-Hour Cash Recovery Kit.</p>
-                        
-                        <!-- Visible Play Trigger -->
-                        <button onclick="video.play()" class="pointer-events-auto bg-sky-600 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition duration-300">
-                            <span class="text-white text-2xl ml-1">▶</span>
+                    <!-- Sales Message Overlay (Hides on Play) -->
+                    <div id="video-pending-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 pointer-events-none transition-opacity duration-500">
+                        <!-- Play Trigger -->
+                        <button onclick="video.play()" class="pointer-events-auto bg-sky-600 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition duration-300 mb-6">
+                            <span class="text-white text-3xl ml-1">▶</span>
                         </button>
+                        <h3 class="text-white text-2xl md:text-3xl font-black max-w-sm mb-2 drop-shadow-2xl">See How to Recover $1,000s in Leaked Revenue</h3>
                     </div>
 
                     <!-- Delayed Skip Control -->
