@@ -30,25 +30,44 @@
                 </div>
                 
                 <!-- Visual Persuasion: Video Section -->
-                <div class="w-full aspect-video rounded-3xl shadow-2xl bg-slate-900 border-4 border-white overflow-hidden relative group cursor-pointer" onclick="openVideoModal()">
-                    <!-- Background Atmosphere -->
+                <div class="w-full aspect-video rounded-3xl shadow-2xl bg-slate-900 border-4 border-white overflow-hidden relative group">
+                    <!-- Standardized Video Player with Controls -->
                     <video 
-                        id="hero-bg-video"
-                        class="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition duration-500"
-                        poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1000"
-                        autoplay muted loop playsinline>
-                        <source src="https://assets.mixkit.co/videos/preview/mixkit-man-working-on-his-laptop-308-large.mp4" type="video/mp4">
+                        id="product-sales-video"
+                        class="w-full h-full object-cover"
+                        controls 
+                        playsinline 
+                        preload="metadata"
+                        poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1000">
+                        <!-- SOURCE: Approved Product Video Pending -->
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
                     </video>
                     
-                    <!-- Overlay Controls -->
-                    <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                        <div class="bg-sky-600 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-2xl group-hover:scale-110 transition duration-300">
-                            <span class="text-white text-3xl ml-1">▶</span>
-                        </div>
-                        <span class="text-sky-400 font-bold uppercase tracking-widest text-[10px] mb-2 bg-slate-900/80 px-2 py-1 rounded">15-Second Case Study</span>
-                        <h3 class="text-white text-xl md:text-2xl font-black max-w-xs drop-shadow-lg">How 3 Texts Recovered $1,200 in 24 Hours</h3>
+                    <!-- Fallback / Pending Approval Message -->
+                    <div id="video-pending-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/90 pointer-events-none">
+                        <div class="bg-sky-600/20 text-sky-400 border border-sky-400/30 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">Product Video Pending Approval</div>
+                        <h3 class="text-white text-xl md:text-2xl font-black max-w-sm mb-2">48-Hour Cash Recovery Kit Sales Video</h3>
+                        <p class="text-slate-400 text-sm max-w-xs">This video will show local service business owners how to recover lost revenue using the 48-Hour Cash Recovery Kit.</p>
+                    </div>
+
+                    <!-- Skip / Jump Controls -->
+                    <div class="absolute bottom-6 right-6 flex gap-2">
+                        <a href="#product-details" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 transition">Skip to Details</a>
                     </div>
                 </div>
+
+                <script>
+                    const video = document.getElementById('product-sales-video');
+                    const overlay = document.getElementById('video-pending-overlay');
+                    
+                    video.addEventListener('play', () => {
+                        overlay.style.opacity = '0';
+                    });
+                    video.addEventListener('pause', () => {
+                        if (video.currentTime === 0) overlay.style.opacity = '1';
+                    });
+                </script>
             </div>
         </section>
     </header>
@@ -136,36 +155,5 @@
     <footer class="py-12 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
         &copy; 2026 AssetForge • Build This Today
     </footer>
-
-    <!-- Video Modal -->
-    <div id="video-modal" class="fixed inset-0 z-50 hidden bg-slate-950/95 flex items-center justify-center p-4 md:p-12">
-        <div class="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
-            <button onclick="closeVideoModal()" class="absolute top-6 right-6 z-10 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 h-10 w-10 rounded-full flex items-center justify-center transition">✕</button>
-            <div class="absolute inset-0 flex items-center justify-center">
-                <p class="text-sky-400 font-mono text-sm uppercase tracking-widest animate-pulse">[ 15s Video Concept: Real Estate Agent "Ghosted" to "Paid" Narrative ]</p>
-            </div>
-            <!-- In production, replace the iframe src with your hosted Luma/Runway video link -->
-            <iframe id="modal-video-iframe" class="w-full h-full" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-        </div>
-    </div>
-
-    <script>
-        function openVideoModal() {
-            const modal = document.getElementById('video-modal');
-            const iframe = document.getElementById('modal-video-iframe');
-            // Using a high-quality relevant stock video as a placeholder for the concept
-            iframe.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"; // Example placeholder
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeVideoModal() {
-            const modal = document.getElementById('video-modal');
-            const iframe = document.getElementById('modal-video-iframe');
-            iframe.src = "";
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-    </script>
 </body>
 </html>
