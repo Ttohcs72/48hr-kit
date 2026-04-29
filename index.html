@@ -31,57 +31,31 @@
                 
                 <!-- Visual Persuasion: Video Section -->
                 <div class="w-full aspect-video rounded-3xl shadow-2xl bg-slate-900 border-4 border-white overflow-hidden relative group">
-                    <!-- Standardized Video Player with Controls -->
-                    <video 
-                        id="product-sales-video"
-                        class="w-full h-full object-cover"
-                        controls 
-                        playsinline 
-                        preload="metadata"
-                        poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1000">
-                        <!-- SOURCE: Production Video with Cloud Delivery -->
-                        <source src="https://v.ft-static.com/08/21/28/71/700_821287123.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    
-                    <!-- Sales Message Overlay (Hides on Play) -->
-                    <div id="video-pending-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 pointer-events-none transition-opacity duration-500">
-                        <!-- Play Trigger -->
-                        <button onclick="video.play()" class="pointer-events-auto bg-sky-600 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition duration-300 mb-6">
-                            <span class="text-white text-3xl ml-1">▶</span>
-                        </button>
-                        <h3 class="text-white text-2xl md:text-3xl font-black max-w-sm mb-2 drop-shadow-2xl">See How to Recover $1,000s in Leaked Revenue</h3>
+                    <!-- High-Reliability YouTube Embed (Controlled) -->
+                    <div id="video-container" class="w-full h-full">
+                        <iframe 
+                            id="product-video-frame"
+                            class="w-full h-full"
+                            src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1&rel=0&modestbranding=1&controls=1" 
+                            title="48-Hour Cash Recovery Kit" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                        </iframe>
                     </div>
 
-                    <!-- Delayed Skip Control -->
-                    <div id="skip-container" class="absolute bottom-6 right-6 opacity-0 transition-opacity duration-500 pointer-events-none">
-                        <a href="#product-details" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 transition">Skip to Details</a>
+                    <!-- Delayed Skip Control (appears after 10s via JS) -->
+                    <div id="skip-container" class="absolute bottom-6 right-6 hidden">
+                        <a href="#product-details" class="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 transition">Skip to Details</a>
                     </div>
                 </div>
 
                 <script>
-                    const video = document.getElementById('product-sales-video');
-                    const overlay = document.getElementById('video-pending-overlay');
-                    const skip = document.getElementById('skip-container');
-                    
-                    video.addEventListener('play', () => {
-                        overlay.style.opacity = '0';
-                        overlay.style.pointerEvents = 'none';
-                        
-                        // Show skip button after 10 seconds of playback
-                        setTimeout(() => {
-                            skip.classList.remove('opacity-0');
-                            skip.classList.add('opacity-100');
-                            skip.style.pointerEvents = 'auto';
-                        }, 10000);
-                    });
-
-                    video.addEventListener('pause', () => {
-                        if (video.currentTime === 0) {
-                            overlay.style.opacity = '1';
-                            overlay.style.pointerEvents = 'auto';
-                        }
-                    });
+                    // Wait 10 seconds, then show the skip button
+                    setTimeout(() => {
+                        const skipBtn = document.getElementById('skip-container');
+                        skipBtn.classList.remove('hidden');
+                    }, 10000);
                 </script>
             </div>
         </section>
