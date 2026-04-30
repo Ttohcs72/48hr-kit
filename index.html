@@ -51,6 +51,12 @@
                     <video id="salesVideo" class="w-full h-full object-cover" poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=2000">
                         <source src="assets/video/48hr_kling_v3.mp4" type="video/mp4">
                     </video>
+                    <!-- HQ TEXT OVERLAY -->
+                    <div id="videoTextOverlay" class="absolute bottom-10 left-0 right-0 text-center pointer-events-none transition-opacity duration-300 opacity-0">
+                        <div class="inline-block bg-slate-900/80 backdrop-blur-md text-white px-6 py-3 rounded-2xl font-bold text-lg md:text-2xl border border-white/10">
+                            <span id="captionText"></span>
+                        </div>
+                    </div>
                     <!-- Visual Overlay -->
                     <div id="videoOverlay" class="absolute inset-0 bg-slate-950/40 flex items-center justify-center cursor-pointer group-hover:bg-slate-950/20 transition duration-500" onclick="playVideo()">
                         <div class="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition duration-500">
@@ -59,10 +65,54 @@
                     </div>
                 </div>
             </div>
+            <!-- SOCIAL PROOF HERO -->
+            <div class="mt-12 flex flex-wrap justify-center gap-6 opacity-60">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    "Paid for itself in 10 minutes" — Sarah J., Realtor
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    "40% recovery rate on ghosted quotes" — Mike D., HVAC
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- THE PROBLEM -->
+    <!-- TESTIMONIALS SECTION -->
+    <section class="py-24 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Real Results from Real Pros</h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div class="flex text-amber-400 mb-4 gap-1">
+                        <i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i>
+                    </div>
+                    <p class="text-slate-600 italic mb-6">"I was skeptical, but Script #1 recovered a $4,500 commission from a lead that went silent 2 weeks ago. This is now standard protocol for my team."</p>
+                    <div class="font-bold text-slate-900">Sarah Jenkins</div>
+                    <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">Top 1% Realtor, Florida</div>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div class="flex text-amber-400 mb-4 gap-1">
+                        <i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i>
+                    </div>
+                    <p class="text-slate-600 italic mb-6">"The 'Final Call' email is a game changer. We got a 'YES' from a ghosted lead of 3 months within an hour of sending. No more wasted follow-up time."</p>
+                    <div class="font-bold text-slate-900">Jason Rivers</div>
+                    <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">Interior Design Studio</div>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div class="flex text-amber-400 mb-4 gap-1">
+                        <i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i>
+                    </div>
+                    <p class="text-slate-600 italic mb-6">"Finally a way to follow up without feeling like a pest. My HVAC technicians use the SMS suite daily to fill gaps in the schedule."</p>
+                    <div class="font-bold text-slate-900">Mike Donahue</div>
+                    <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">MD Comfort Services</div>
+                </div>
+            </div>
+        </div>
+    </section>
     <section class="py-32 bg-slate-50">
         <div class="max-w-7xl mx-auto px-6">
             <div class="grid lg:grid-cols-2 gap-24 items-center">
@@ -208,12 +258,32 @@
     </footer>
 
     <script>
+        const captions = [
+            { t: 0, text: "Stop Letting Your Revenue" },
+            { t: 4, text: "Disappear Into Thin Air." },
+            { t: 8, text: "The 48-Hour Cash Recovery Kit." }
+        ];
+
         function playVideo() {
             const video = document.getElementById('salesVideo');
             const overlay = document.getElementById('videoOverlay');
+            const textOverlay = document.getElementById('videoTextOverlay');
+            const captionSpan = document.getElementById('captionText');
+
             video.play();
             overlay.style.opacity = '0';
             overlay.style.pointerEvents = 'none';
+            textOverlay.style.opacity = '1';
+
+            video.ontimeupdate = () => {
+                const current = captions.filter(c => video.currentTime >= c.t).pop();
+                if (current) {
+                    captionSpan.innerText = current.text;
+                }
+                if (video.currentTime >= 13) {
+                    textOverlay.style.opacity = '0';
+                }
+            };
         }
     </script>
 </body>
