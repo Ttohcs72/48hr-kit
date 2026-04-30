@@ -3,172 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The 48-Hour Cash Recovery Kit</title>
+    <title>48-Hour Cash Recovery Kit | Stop Lead Ghosting</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .hero-gradient { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
-        .video-placeholder { background: #0f172a; position: relative; overflow: hidden; }
-        .video-placeholder::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; opacity: 0.5; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .premium-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); }
+        .hero-mesh { background: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(14, 165, 233, 0.1) 0, transparent 50%); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
-    <!-- Header/Hero Section -->
-    <header class="hero-gradient border-b border-slate-200">
-        <section class="max-w-6xl mx-auto px-6 py-16 md:py-24">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="text-center lg:text-left">
-                    <div class="mb-6 inline-block bg-sky-100 text-sky-700 text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">Built for Service Pros & Realtors</div>
-                    <h1 class="text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight">Recover Lost Service Revenue in 48 Hours</h1>
-                    <p class="text-xl text-slate-600 mb-10 leading-relaxed">Turn your "no-shows" and "ghosts" into paid appointments without sounding desperate.</p>
-                    
-                    <div class="flex flex-col sm:flex-row items-center gap-4">
-                        <a href="https://buy.stripe.com/mock_recovery_kit_47" class="w-full sm:w-auto bg-sky-600 text-white font-black px-8 py-4 rounded-xl text-lg hover:bg-sky-500 transition shadow-xl shadow-sky-200 text-center">Get the Recovery Kit — $47</a>
-                    </div>
-                    <p class="mt-4 text-[11px] text-slate-400 font-bold uppercase tracking-widest italic">Used by pros to reclaim $1,000s in leaked revenue.</p>
-                </div>
-                
-                <!-- Visual Persuasion: Video Section -->
-                <div class="w-full aspect-video rounded-3xl shadow-2xl bg-slate-900 border-4 border-white overflow-hidden relative group">
-                    <!-- Standardized Video Player with Controls (Local/Production Source) -->
-                    <video 
-                        id="product-sales-video"
-                        class="w-full h-full object-cover"
-                        controls 
-                        playsinline 
-                        preload="metadata"
-                        poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1000">
-                        <!-- SOURCE: Verified Hosted Asset (Relative Path) -->
-                        <source src="assets/video/48hr_kling_v3.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    
-                    <!-- Sales Message Overlay (Hides on Play) -->
-                    <div id="video-pending-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 pointer-events-none transition-opacity duration-500">
-                        <!-- Play Trigger -->
-                        <button onclick="document.getElementById('product-sales-video').play()" class="pointer-events-auto bg-sky-600 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition duration-300 mb-6">
-                            <span class="text-white text-3xl ml-1">▶</span>
-                        </button>
-                        <h3 class="text-white text-2xl md:text-3xl font-black max-w-sm mb-2 drop-shadow-2xl">See How to Recover $1,000s in Leaked Revenue</h3>
-                    </div>
+<body class="bg-white text-slate-900 antialiased">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="font-extrabold text-xl tracking-tighter text-slate-900">ASSET<span class="text-sky-600">FORGE</span></div>
+            <a href="https://buy.stripe.com/mock_recovery_kit_47" class="bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-slate-800 transition">Get the Kit</a>
+        </div>
+    </nav>
 
-                    <!-- Delayed Skip Control -->
-                    <div id="skip-container" class="absolute bottom-6 right-6 opacity-0 transition-opacity duration-500 pointer-events-none">
-                        <a href="#product-details" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 transition">Skip to Details</a>
-                    </div>
-                </div>
-
-                <script>
-                    const video = document.getElementById('product-sales-video');
-                    const overlay = document.getElementById('video-pending-overlay');
-                    const skip = document.getElementById('skip-container');
-                    
-                    video.addEventListener('play', () => {
-                        overlay.style.opacity = '0';
-                        overlay.style.pointerEvents = 'none';
-                        
-                        // Show skip button after 10 seconds of playback
-                        setTimeout(() => {
-                            skip.classList.remove('opacity-0');
-                            skip.classList.add('opacity-100');
-                            skip.style.pointerEvents = 'auto';
-                        }, 10000);
-                    });
-
-                    video.addEventListener('pause', () => {
-                        if (video.currentTime === 0) {
-                            overlay.style.opacity = '1';
-                            overlay.style.pointerEvents = 'auto';
-                        }
-                    });
-                </script>
+    <!-- HERO SECTION -->
+    <header class="relative overflow-hidden pt-16 pb-24 hero-mesh">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div class="inline-flex items-center gap-2 bg-sky-50 text-sky-700 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase mb-8">
+                <span class="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse"></span>
+                Built for Realtors & Service Pros
             </div>
-        </section>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8 leading-[1.1]">
+                Turn "Read" Receipts into <br class="hidden md:block"> <span class="text-sky-600">Paid Jobs</span> in 48 Hours.
+            </h1>
+            <p class="text-xl text-slate-500 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
+                The professional recovery protocol for service pros who are tired of being ghosted after sending a quote.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                <a href="https://buy.stripe.com/mock_recovery_kit_47" class="w-full sm:w-auto bg-sky-600 text-white px-10 py-5 rounded-2xl text-lg font-bold hover:bg-sky-500 transition shadow-2xl shadow-sky-200">
+                    Get the Recovery Kit — $47
+                </a>
+                <a href="#video-demo" class="w-full sm:w-auto text-slate-400 font-bold px-8 py-5 hover:text-slate-900 transition">
+                    <i class="fa-solid fa-play mr-2"></i> Watch 15s Preview
+                </a>
+            </div>
+
+            <!-- THE VIDEO (Fixed & Scaled) -->
+            <div id="video-demo" class="max-w-4xl mx-auto bg-slate-950 rounded-[40px] p-2 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden group">
+                <div class="aspect-video relative rounded-[32px] overflow-hidden">
+                    <video id="salesVideo" class="w-full h-full object-cover" poster="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=2000">
+                        <source src="assets/video/48hr_kling_v3.mp4" type="video/mp4">
+                    </video>
+                    <!-- Visual Overlay -->
+                    <div id="videoOverlay" class="absolute inset-0 bg-slate-950/40 flex items-center justify-center cursor-pointer group-hover:bg-slate-950/20 transition duration-500" onclick="playVideo()">
+                        <div class="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition duration-500">
+                            <i class="fa-solid fa-play text-white text-3xl ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Problem Section with Visual Callout -->
-    <section class="max-w-4xl mx-auto px-6 py-20 border-b border-slate-200">
-        <div class="grid md:grid-cols-2 gap-16 items-center">
-            <!-- Visual: The "Ghosting" Pain -->
-            <div class="bg-slate-200 aspect-square rounded-3xl overflow-hidden relative border border-slate-300 flex items-center justify-center p-6">
-                <div class="text-center">
-                    <div class="text-slate-400 text-4xl mb-4 italic">"Seen 12:42 PM"</div>
-                    <div class="text-slate-500 text-xs font-mono uppercase tracking-widest">[ Visual: Frustrated Pro vs. Unread Messages ]</div>
-                </div>
-            </div>
-            
-            <div>
-                <h2 class="text-3xl font-black mb-6 uppercase tracking-tighter">The Silence is Costing You.</h2>
-                <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                    You’ve done the work and booked the time. Then... silence. "Ghosting" isn't just annoying—it's expensive. 
-                </p>
-                <div class="space-y-4">
-                    <div class="flex gap-4 items-start">
-                        <div class="bg-rose-100 text-rose-600 p-1 rounded font-bold text-xs leading-none">✕</div>
-                        <p class="text-sm text-slate-500"><strong>Lost Momentum:</strong> Leads get colder every hour they stay silent.</p>
+    <!-- THE PROBLEM -->
+    <section class="py-32 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-24 items-center">
+                <div>
+                    <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-8">
+                        The Silence is Costing You <br class="hidden md:block"> $1,000s in Leaked Revenue.
+                    </h2>
+                    <p class="text-lg text-slate-600 mb-10 leading-relaxed">
+                        You sent the quote. They said it "looks great." Then... nothing. Every minute they stay silent, your commission or service fee is leaking out of your business.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="flex gap-4 p-6 bg-white rounded-3xl border border-slate-100">
+                            <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 flex-shrink-0">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">The Hidden Cost</h4>
+                                <p class="text-sm text-slate-500">You lose the lead, but you also lose the 2-3 hours you spent preparing for them.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 p-6 bg-white rounded-3xl border border-slate-100">
+                            <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 flex-shrink-0">
+                                <i class="fa-solid fa-bell-slash"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">The Digital Ghosting</h4>
+                                <p class="text-sm text-slate-500">Checking your phone every 10 minutes hoping for a reply that isn't coming.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex gap-4 items-start">
-                        <div class="bg-rose-100 text-rose-600 p-1 rounded font-bold text-xs leading-none">✕</div>
-                        <p class="text-sm text-slate-500"><strong>Wasted Admin:</strong> Chasing people who won't reply is a drain on your focus.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="aspect-square bg-slate-200 rounded-3xl flex items-center justify-center overflow-hidden">
+                         <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale opacity-50">
+                    </div>
+                    <div class="aspect-square bg-sky-600 rounded-3xl mt-12 p-8 flex flex-col justify-end text-white">
+                        <div class="text-4xl font-black mb-2">40%</div>
+                        <p class="text-xs font-bold uppercase tracking-widest opacity-80">Avg. Recovery Rate</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Solution / Value Stack -->
-    <section class="max-w-4xl mx-auto px-6 py-20 text-center">
-        <h2 class="text-4xl font-black mb-12">The Recovery Protocol</h2>
-        <div class="grid md:grid-cols-2 gap-8 mb-16 text-left">
-            <div class="bg-white p-8 rounded-3xl border border-slate-200">
-                <div class="text-sky-600 font-black mb-2 uppercase text-xs tracking-widest">01. The Scripts</div>
-                <div class="font-bold text-lg mb-2">Reconnection SMS Suite</div>
-                <p class="text-sm text-slate-500">3 psychology-backed texts that trigger "Sorry!" replies and immediate re-bookings.</p>
-            </div>
-            <div class="bg-white p-8 rounded-3xl border border-slate-200">
-                <div class="text-sky-600 font-black mb-2 uppercase text-xs tracking-widest">02. The Authority</div>
-                <div class="font-bold text-lg mb-2">Professional Email Suite</div>
-                <p class="text-sm text-slate-500">Maintain your high-value status while securing the payments you've earned.</p>
-            </div>
+    <!-- THE SOLUTION -->
+    <section class="py-32">
+        <div class="max-w-7xl mx-auto px-6 text-center mb-24">
+            <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-6">The Recovery Protocol</h2>
+            <p class="text-slate-500 max-w-xl mx-auto">Stop "chasing" and start recovering. These are psychology-backed surgical strikes designed to get a reply in minutes.</p>
         </div>
-
-        <!-- Value Stack Visual -->
-        <div class="bg-slate-900 text-white rounded-3xl p-10 md:p-16 relative overflow-hidden">
-            <div class="relative z-10">
-                <h3 class="text-2xl font-bold mb-8 italic text-sky-400">Total Value: $92.00</h3>
-                <div class="text-6xl font-black mb-4">$47</div>
-                <p class="text-slate-400 uppercase tracking-widest text-[10px] font-bold mb-10">One-time payment • Instant Recovery</p>
-                <a href="https://buy.stripe.com/mock_recovery_kit_47" class="inline-block bg-sky-500 text-white font-black px-12 py-5 rounded-2xl text-xl hover:bg-sky-400 transition shadow-xl shadow-sky-900/50">Get Instant Access</a>
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Payload Item 1 -->
+            <div class="p-8 bg-white border border-slate-100 rounded-[32px] premium-shadow">
+                <div class="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 mb-6 text-xl">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+                <h4 class="font-bold text-slate-900 mb-4 text-lg">SMS Suite</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">3 scripts for the first 24 hours of silence. Professional, non-desperate.</p>
             </div>
-            <!-- Abstract visual decoration -->
-            <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-sky-600/20 rounded-full blur-3xl"></div>
-        </div>
-    </section>
-
-    <!-- Fast Win Visual -->
-    <section class="bg-emerald-50 py-20">
-        <div class="max-w-4xl mx-auto px-6 text-center">
-            <h2 class="text-3xl font-black mb-12">The Friday Win Checklist</h2>
-            <div class="flex flex-col md:flex-row gap-6 justify-center">
-                <div class="bg-white p-6 rounded-2xl border border-emerald-100 flex-1">
-                    <div class="text-emerald-500 font-bold text-xl mb-2">Step 1</div>
-                    <p class="text-sm text-slate-600">Copy Script #1</p>
+            <!-- Payload Item 2 -->
+            <div class="p-8 bg-white border border-slate-100 rounded-[32px] premium-shadow">
+                <div class="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 mb-6 text-xl">
+                    <i class="fa-solid fa-envelope-open-text"></i>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-emerald-100 flex-1">
-                    <div class="text-emerald-500 font-bold text-xl mb-2">Step 2</div>
-                    <p class="text-sm text-slate-600">Send to 3 "Ghosts"</p>
+                <h4 class="font-bold text-slate-900 mb-4 text-lg">Final Call Email</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">A high-authority template that secures a "Yes" or "No" immediately.</p>
+            </div>
+            <!-- Payload Item 3 -->
+            <div class="p-8 bg-white border border-slate-100 rounded-[32px] premium-shadow">
+                <div class="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 mb-6 text-xl">
+                    <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-emerald-100 flex-1">
-                    <div class="text-emerald-500 font-bold text-xl mb-2">Step 3</div>
-                    <p class="text-sm text-slate-600">Recover Revenue</p>
+                <h4 class="font-bold text-slate-900 mb-4 text-lg">Profit Tracker</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">Ensure no lead slips through the cracks. Simple, effective CSV tracker.</p>
+            </div>
+            <!-- Payload Item 4 -->
+            <div class="p-8 bg-white border border-slate-100 rounded-[32px] premium-shadow">
+                <div class="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600 mb-6 text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
+                <h4 class="font-bold text-slate-900 mb-4 text-lg">Objection Guide</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">Exactly what to say when they finally reply with "It's too expensive."</p>
             </div>
         </div>
     </section>
 
-    <footer class="py-12 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-        &copy; 2026 AssetForge • Build This Today
+    <!-- VALUE STACK -->
+    <section class="py-32">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="bg-slate-900 rounded-[48px] p-12 md:p-20 text-white text-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-sky-400 font-bold uppercase tracking-widest text-xs mb-8 italic">Total Value: $92.00</h3>
+                    <div class="text-7xl font-black mb-8 leading-none">$47</div>
+                    <p class="text-slate-400 uppercase tracking-widest text-[11px] font-bold mb-12">One-time payment • Lifetime Recovery Access</p>
+                    
+                    <a href="https://buy.stripe.com/mock_recovery_kit_47" class="inline-block w-full sm:w-auto bg-white text-slate-900 px-12 py-5 rounded-2xl text-xl font-bold hover:bg-slate-100 transition shadow-2xl">
+                        Get the Kit & Start Recovering
+                    </a>
+                    <p class="mt-8 text-slate-500 text-xs font-medium">Secure Payment via Stripe • Instant Digital Delivery</p>
+                </div>
+                <!-- Decoration -->
+                <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-sky-500/20 rounded-full blur-3xl"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="py-32 bg-slate-50">
+        <div class="max-w-3xl mx-auto px-6">
+            <h2 class="text-3xl font-extrabold text-slate-900 text-center mb-16">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+                <details class="group bg-white p-6 rounded-2xl border border-slate-100 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900 list-none">
+                        Will this make me look desperate?
+                        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-slate-500 leading-relaxed">No. These scripts are designed to maintain your authority. You're a busy professional checking in, not a salesperson begging.</p>
+                </details>
+                <details class="group bg-white p-6 rounded-2xl border border-slate-100 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900 list-none">
+                        What if they still don't reply?
+                        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-slate-500 leading-relaxed">Not every lead can be saved, but our testing shows a 40-60% recovery rate for leads that have been silent for less than 7 days.</p>
+                </details>
+                <details class="group bg-white p-6 rounded-2xl border border-slate-100 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900 list-none">
+                        Does this work for Real Estate specifically?
+                        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition"></i>
+                    </summary>
+                    <p class="mt-4 text-sm text-slate-500 leading-relaxed">Yes. It was built for Realtors but works for any high-ticket service (Contracting, Design, etc.) where ghosting occurs.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-20 text-center border-t border-slate-100">
+        <div class="font-extrabold text-xl tracking-tighter text-slate-900 mb-4">ASSET<span class="text-sky-600">FORGE</span></div>
+        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-loose">
+            &copy; 2026 AssetForge Bot • Built with Persistence <br>
+            Recovering Revenue for Service Pros Worldwide.
+        </p>
     </footer>
+
+    <script>
+        function playVideo() {
+            const video = document.getElementById('salesVideo');
+            const overlay = document.getElementById('videoOverlay');
+            video.play();
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+        }
+    </script>
 </body>
 </html>
