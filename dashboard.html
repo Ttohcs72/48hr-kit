@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Agent Review Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+
+    <!-- This page is the ~5% of this system that stays human: everything the
+         Brand Guardian agent wasn't fully confident about (or that's waiting
+         on a real photo/video) lands here instead of being auto-published.
+         It talks directly to Supabase using the public "anon" key, which is
+         safe to expose because Row Level Security (see agent-system/src/db/schema.sql)
+         restricts it to read + status-only updates on the posts table. -->
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="font-extrabold text-xl tracking-tighter text-slate-900">ASSET<span class="text-sky-600">FORGE</span> <span class="text-slate-400 font-medium text-sm">/ Marketing Agent Review</span></div>
+            <button id="settingsBtn" class="text-slate-400 hover:text-slate-900 transition"><i class="fa-solid fa-gear"></i></button>
+        </div>
+    </nav>
+
+    <!-- Connection settings: Supabase URL + anon key, stored only in this browser's localStorage -->
+    <div id="settingsPanel" class="hidden bg-white border-b border-slate-100">
+        <div class="max-w-6xl mx-auto px-6 py-6 grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Supabase URL</label>
+                <input id="supabaseUrlInput" type="text" placeholder="https://xxxx.supabase.co" class="mt-1 w-full border border-slate-200 rounded-xl px-4 py-2 text-sm">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Supabase Anon Key</label>
+                <input id="supabaseKeyInput" type="text" placeholder="eyJhbGciOi..." class="mt-1 w-full border border-slate-200 rounded-xl px-4 py-2 text-sm">
+            </div>
+            <div class="md:col-span-2 flex items-center gap-4">
+                <button id="saveSettingsBtn" class="bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-slate-800 transition">Save & Connect</button>
+                <span class="text-xs text-slate-400">Found in your Supabase project: Settings → API. Stored only in this browser (localStorage), never committed to the repo.</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-6xl mx-auto px-6 py-12">
+        <div id="notConnected" class="hidden text-center py-24">
+            <i class="fa-solid fa-plug-circle-xmark text-4xl text-slate-300 mb-4"></i>
+            <p class="text-slate-500">Not connected yet. Click the gear icon above and paste your Supabase project URL + anon key.</p>
+        </div>
+
+        <div id="connectedView" class="hidden">
+            <section class="mb-16">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-extrabold tracking-tight">Needs Your Review</h2>
+                    <span id="reviewCount" class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full">0 pending</span>
+                </div>
+                <div id="reviewList" class="space-y-4"></div>
+                <p id="reviewEmpty" class="hidden text-slate-400 text-sm">Nothing waiting on you right now — the agent team has this covered.</p>
+            </section>
+
+            <section class="mb-16">
+                <h2 class="text-2xl font-extrabold tracking-tight mb-6">Upcoming (Approved & Scheduled)</h2>
+                <div id="upcomingList" class="space-y-2"></div>
+                <p id="upcomingEmpty" class="hidden text-slate-400 text-sm">No approved posts scheduled yet.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-extrabold tracking-tight mb-6">Recently Published</h2>
+                <div id="publishedList" class="space-y-2"></div>
+                <p id="publishedEmpty" class="hidden text-slate-400 text-sm">Nothing published yet.</p>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const PLATFORM_ICON = { x: 'fa-brands fa-x-twitter', linkedin: 'fa-brands fa-linkedin', facebook: 'fa-brands fa-facebook', instagram: 'fa-brands fa-instagram', tiktok: 'fa-brands fa-tiktok', pinterest: 'fa-brands fa-pinterest' };
+        let client = null;
+
+        function loadSettings() {
+            const url = localStorage.getItem('sb_url');
+            const key = localStorage.getItem('sb_key');
+            if (url && key) {
+                document.getElementById('supabaseUrlInput').value = url;
+                document.getElementById('supabaseKeyInput').value = key;
+                client = window.supabase.createClient(url, key);
+                document.getElementById('connectedView').classList.remove('hidden');
+                document.getElementById('notConnected').classList.add('hidden');
+                refreshAll();
+            } else {
+                document.getElementById('notConnected').classList.remove('hidden');
+                document.getElementById('settingsPanel').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsPanel').classList.toggle('hidden');
+        document.getElementById('saveSettingsBtn').onclick = () => {
+            const url = document.getElementById('supabaseUrlInput').value.trim();
+            const key = document.getElementById('supabaseKeyInput').value.trim();
+            if (!url || !key) return;
+            localStorage.setItem('sb_url', url);
+            localStorage.setItem('sb_key', key);
+            loadSettings();
+        };
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str ?? '';
+            return div.innerHTML;
+        }
+
+        function formatDate(iso) {
+            return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        }
+
+        async function refreshAll() {
+            await Promise.all([loadReviewQueue(), loadUpcoming(), loadPublished()]);
+        }
+
+        async function loadReviewQueue() {
+            const { data, error } = await client.from('posts').select('*').eq('status', 'needs_human_review').order('scheduled_at', { ascending: true });
+            if (error) { console.error(error); return; }
+            const list = document.getElementById('reviewList');
+            document.getElementById('reviewCount').textContent = `${data.length} pending`;
+            document.getElementById('reviewEmpty').classList.toggle('hidden', data.length > 0);
+            list.innerHTML = data.map(renderReviewCard).join('');
+            data.forEach(attachReviewHandlers);
+        }
+
+        function renderReviewCard(post) {
+            const needsMedia = ['instagram', 'tiktok', 'pinterest'].includes(post.platform) && !post.media_url;
+            return `
+            <div class="bg-white border border-slate-100 rounded-3xl p-6" data-id="${post.id}">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2 text-sm font-bold">
+                        <i class="${PLATFORM_ICON[post.platform] || 'fa-solid fa-share-nodes'} text-sky-600"></i>
+                        ${escapeHtml(post.platform)}
+                        <span class="text-slate-300 font-normal">·</span>
+                        <span class="text-slate-400 font-normal">${formatDate(post.scheduled_at)}</span>
+                    </div>
+                    ${post.brand_guardian_score != null ? `<span class="text-xs font-bold px-3 py-1 rounded-full ${post.brand_guardian_score >= 70 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">Brand Guardian: ${post.brand_guardian_score}/100</span>` : ''}
+                </div>
+                <p class="text-slate-800 whitespace-pre-wrap mb-3">${escapeHtml(post.content)}</p>
+                ${(post.hashtags || []).length ? `<p class="text-sky-600 text-sm mb-3">${post.hashtags.map(h => '#' + escapeHtml(h)).join(' ')}</p>` : ''}
+                ${post.media_brief ? `<div class="bg-slate-50 rounded-2xl p-4 mb-3 text-sm text-slate-500"><span class="font-bold text-slate-700">Media brief:</span> ${escapeHtml(post.media_brief)}</div>` : ''}
+                ${post.brand_guardian_notes ? `<div class="bg-amber-50 rounded-2xl p-4 mb-3 text-sm text-amber-700"><span class="font-bold">Brand Guardian notes:</span> ${escapeHtml(post.brand_guardian_notes)}</div>` : ''}
+                ${needsMedia ? `
+                <div class="flex gap-2 mb-4">
+                    <input type="text" placeholder="Paste public image/video URL to attach..." class="media-url-input flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm">
+                    <button class="save-media-btn bg-slate-100 text-slate-700 text-xs font-bold px-4 rounded-xl hover:bg-slate-200 transition">Attach</button>
+                </div>` : ''}
+                <div class="flex gap-3">
+                    <button class="approve-btn bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-emerald-500 transition">Approve</button>
+                    <button class="reject-btn bg-white border border-slate-200 text-slate-500 text-xs font-bold px-5 py-2.5 rounded-full hover:bg-slate-50 transition">Reject</button>
+                </div>
+            </div>`;
+        }
+
+        function attachReviewHandlers(post) {
+            const card = document.querySelector(`[data-id="${post.id}"]`);
+            if (!card) return;
+            card.querySelector('.approve-btn').onclick = () => updateStatus(post.id, 'approved');
+            card.querySelector('.reject-btn').onclick = () => updateStatus(post.id, 'rejected');
+            const saveMediaBtn = card.querySelector('.save-media-btn');
+            if (saveMediaBtn) {
+                saveMediaBtn.onclick = async () => {
+                    const url = card.querySelector('.media-url-input').value.trim();
+                    if (!url) return;
+                    await client.from('posts').update({ media_url: url }).eq('id', post.id);
+                    refreshAll();
+                };
+            }
+        }
+
+        async function updateStatus(id, status) {
+            const { error } = await client.from('posts').update({ status }).eq('id', id);
+            if (error) { alert('Failed to update: ' + error.message); return; }
+            refreshAll();
+        }
+
+        async function loadUpcoming() {
+            const { data, error } = await client.from('posts').select('*').eq('status', 'approved').order('scheduled_at', { ascending: true }).limit(20);
+            if (error) { console.error(error); return; }
+            document.getElementById('upcomingEmpty').classList.toggle('hidden', data.length > 0);
+            document.getElementById('upcomingList').innerHTML = data.map(p => `
+                <div class="flex items-center gap-4 bg-white border border-slate-100 rounded-2xl px-5 py-3 text-sm">
+                    <i class="${PLATFORM_ICON[p.platform] || 'fa-solid fa-share-nodes'} text-sky-600 w-4"></i>
+                    <span class="text-slate-400 w-40 flex-shrink-0">${formatDate(p.scheduled_at)}</span>
+                    <span class="truncate text-slate-700">${escapeHtml(p.content)}</span>
+                </div>`).join('');
+        }
+
+        async function loadPublished() {
+            const { data, error } = await client.from('posts').select('*').eq('status', 'published').order('published_at', { ascending: false }).limit(15);
+            if (error) { console.error(error); return; }
+            document.getElementById('publishedEmpty').classList.toggle('hidden', data.length > 0);
+            document.getElementById('publishedList').innerHTML = data.map(p => `
+                <div class="flex items-center gap-4 bg-white border border-slate-100 rounded-2xl px-5 py-3 text-sm">
+                    <i class="${PLATFORM_ICON[p.platform] || 'fa-solid fa-share-nodes'} text-emerald-600 w-4"></i>
+                    <span class="text-slate-400 w-40 flex-shrink-0">${p.published_at ? formatDate(p.published_at) : ''}</span>
+                    <span class="truncate text-slate-700">${escapeHtml(p.content)}</span>
+                </div>`).join('');
+        }
+
+        loadSettings();
+        setInterval(() => { if (client) refreshAll(); }, 60000);
+    </script>
+</body>
+</html>

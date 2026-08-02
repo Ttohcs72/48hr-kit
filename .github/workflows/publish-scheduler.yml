@@ -1,0 +1,48 @@
+name: Marketing Agents - Publish Scheduler
+
+# The "hands-free posting" heartbeat. Every 30 minutes it checks the
+# database for posts that are status=approved and due (scheduled_at has
+# passed) and publishes them to the real platform APIs. This is the only
+# workflow in the system that actually posts anything publicly.
+#
+# GitHub's own docs note that scheduled workflows can be delayed under
+# heavy platform load and are auto-disabled after 60 days of repo
+# inactivity — see README "Runtime realities" before treating this as a
+# hard real-time guarantee.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: agent-system/package-lock.json
+      - run: npm install
+      - run: npm run publish
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BUSINESS_SLUG: ${{ vars.BUSINESS_SLUG }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_ORGANIZATION_URN: ${{ vars.LINKEDIN_ORGANIZATION_URN }}
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ vars.META_INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
+          TIKTOK_OPEN_ID: ${{ vars.TIKTOK_OPEN_ID }}
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_BOARD_ID: ${{ vars.PINTEREST_BOARD_ID }}

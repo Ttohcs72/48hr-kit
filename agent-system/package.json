@@ -1,0 +1,26 @@
+{
+  "name": "48hr-kit-marketing-agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous multi-platform social media marketing agent team for AssetForge.",
+  "scripts": {
+    "analyze-business": "tsx src/orchestrator/runBusinessAnalysis.ts",
+    "generate-calendar": "tsx src/orchestrator/runContentGeneration.ts",
+    "publish": "tsx src/orchestrator/runPublisher.ts",
+    "sync-analytics": "tsx src/orchestrator/runAnalyticsSync.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "twitter-api-v2": "^1.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
