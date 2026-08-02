@@ -7,6 +7,7 @@
   "scripts": {
     "analyze-business": "tsx src/orchestrator/runBusinessAnalysis.ts",
     "generate-calendar": "tsx src/orchestrator/runContentGeneration.ts",
+    "generate-visuals": "tsx src/orchestrator/runVisualGeneration.ts",
     "publish": "tsx src/orchestrator/runPublisher.ts",
     "sync-analytics": "tsx src/orchestrator/runAnalyticsSync.ts",
     "typecheck": "tsc --noEmit"

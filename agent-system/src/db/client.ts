@@ -160,6 +160,19 @@ export async function getPostsDueForPublishing(businessSlug: string): Promise<Po
   return (data ?? []).map(rowToPost);
 }
 
+export async function getPostsAwaitingMedia(businessSlug: string, platforms: Platform[]): Promise<Post[]> {
+  const { data, error } = await db()
+    .from("posts")
+    .select("*")
+    .eq("business_slug", businessSlug)
+    .eq("status", "needs_human_review")
+    .in("platform", platforms)
+    .is("media_url", null)
+    .not("media_brief", "is", null);
+  if (error) throw error;
+  return (data ?? []).map(rowToPost);
+}
+
 export async function getPublishedPostsMissingRecentAnalytics(businessSlug: string, olderThanHours = 20): Promise<Post[]> {
   const cutoff = new Date(Date.now() - olderThanHours * 3600_000).toISOString();
   const { data, error } = await db()

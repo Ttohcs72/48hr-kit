@@ -66,12 +66,14 @@ process. The database is the system's memory.
 | `src/agents/platformCopywriterAgent.ts` | Turns one calendar entry into a real post draft, using the right platform persona. |
 | `src/agents/brandGuardianAgent.ts` | **The master verification agent.** Checks every draft against real business facts, brand voice, banned topics, and platform norms before it's allowed to publish. |
 | `src/agents/analyticsAgent.ts` | Turns "what performed best" into plain-language lessons for the Strategist to read next time — this is the improvement loop. |
+| `src/agents/visualAgent.ts` | Generates the actual image for Instagram/Pinterest posts from the copywriter's `mediaBrief`, using `src/lib/imageGen.ts` (OpenAI Images API) and `src/lib/storage.ts` (Supabase Storage). TikTok is out of scope here — it needs real video. |
 | `src/platforms/*.ts` | One connector per platform (X, LinkedIn, Meta/Facebook/Instagram, TikTok, Pinterest) behind a shared `publish()`/`fetchMetrics()` interface. Runs in dry-run/log-only mode automatically if that platform's keys aren't set. |
 | `src/orchestrator/runBusinessAnalysis.ts` | Entry point 1: analyze the business website (run once, and monthly after). |
 | `src/orchestrator/runContentGeneration.ts` | Entry point 2: the full plan → write → verify pipeline (run weekly). |
 | `src/orchestrator/runPublisher.ts` | Entry point 3: publishes whatever is due and approved (run every 30 min). |
 | `src/orchestrator/runAnalyticsSync.ts` | Entry point 4: pulls metrics and extracts learnings (run daily). |
-| `.github/workflows/*.yml` | The scheduler — GitHub Actions runs these four scripts on a cron so nothing needs a server. |
+| `src/orchestrator/runVisualGeneration.ts` | Entry point 5: generates and attaches images for Instagram/Pinterest posts waiting on media (run weekly, after content generation). No-ops cleanly if `OPENAI_API_KEY` isn't set. |
+| `.github/workflows/*.yml` | The scheduler — GitHub Actions runs these five scripts on a cron so nothing needs a server. |
 | `dashboard.html` | The human-in-the-loop review UI (see below). |
 
 ## Setup
@@ -94,11 +96,46 @@ process. The database is the system's memory.
 6. For real posting, add each platform's credentials to `.env` — see the
    comments in `.env.example` for exactly which developer portal and which
    permissions each one needs.
-7. For hands-free operation: add all the same values as GitHub Actions
+7. Optional — automated Instagram/Pinterest images: get an `OPENAI_API_KEY`,
+   and in the Supabase dashboard create a **public** Storage bucket named
+   `post-media` (Storage → New bucket → toggle Public). Then
+   `npm run generate-visuals`.
+8. For hands-free operation: add all the same values as GitHub Actions
    **repository secrets** (tokens/keys) and **repository variables**
    (non-secret config like `BUSINESS_SLUG`, `ACTIVE_PLATFORMS`) — Settings →
-   Secrets and variables → Actions, both tabs. The four workflows in
+   Secrets and variables → Actions, both tabs. The five workflows in
    `.github/workflows/` then run on their own schedule.
+
+## Getting your first real post out: X (Twitter)
+
+X has the fastest developer approval of any platform this system supports,
+so it's the fastest way to see the whole pipeline — analyze, plan, write,
+verify, publish — go end to end against a real account. The connector code
+(`src/platforms/x.ts`) is already built; this is the account-side setup
+only you can do (it requires your own X login and agreeing to X's
+Developer Agreement):
+
+1. Go to developer.x.com and sign in with the X account you want to post
+   from. Apply for a developer account (usually near-instant for basic
+   access).
+2. Create a **Project** and an **App** inside it.
+3. In the App's **User authentication settings**, turn on OAuth 1.0a, set
+   **App permissions** to **Read and Write** (critical — it defaults to
+   read-only), and fill in a placeholder callback URL/website if asked
+   (e.g. your `BUSINESS_WEBSITE_URL`) — this system doesn't use the OAuth
+   web flow, but X requires these fields to be filled to save the settings.
+4. From the App's **Keys and tokens** tab: generate/copy the **API Key**
+   and **API Key Secret**, then generate an **Access Token and Secret**
+   (make sure you do this *after* step 3, so the token is generated with
+   Read+Write permission — regenerate it if you flipped permissions after
+   the fact).
+5. Put those four values in `.env` (or as GitHub Actions secrets) as
+   `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`.
+6. Run `npm run generate-calendar`, approve an X post in `dashboard.html`
+   (or set `AUTO_PUBLISH_ENABLED=true` once you trust it), then
+   `npm run publish`. Without those four env vars set, the exact same
+   command runs in dry-run mode and just logs what it would have posted —
+   so you can sanity-check the pipeline before wiring up real credentials.
 
 ## Turning on autonomy
 
@@ -135,10 +172,12 @@ The ~5% that stays human, and why it can't be automated away:
 2. **Meta and TikTok app review.** Both require a human to submit the app
    for manual review before autonomous posting permissions are granted.
    Budget 1-2 weeks for Meta, similar for TikTok's Content Posting API audit.
-3. **Visual assets.** Instagram, TikTok, and Pinterest cannot accept a
-   text-only post — the Graph/TikTok/Pinterest APIs reject it outright. This
-   system generates a `mediaBrief` (what the image/video should be) but
-   does not generate the actual asset. See "Visual content" below.
+3. **Visual assets — mostly automated, TikTok is the exception.** Instagram,
+   TikTok, and Pinterest cannot accept a text-only post — the
+   Graph/TikTok/Pinterest APIs reject it outright. `runVisualGeneration.ts`
+   generates and attaches real images for Instagram/Pinterest automatically;
+   TikTok still needs a human to produce and attach a video. See "Visual
+   content" below.
 4. **The confidence safety valve.** Brand Guardian intentionally escalates
    instead of guessing when it's unsure. Raising `AUTO_PUBLISH_MIN_SCORE`
    trades hands-free-ness for safety; that's a business decision, not
@@ -149,21 +188,26 @@ The ~5% that stays human, and why it can't be automated away:
 
 ## Visual content
 
-This system writes the *strategy and copy* for image/video-first platforms
-but does not generate the images or video themselves — that's a
-deliberately separate concern (image/video generation quality, brand asset
-consistency, and cost are a whole additional system). Two ways to close
-this gap, in order of effort:
-- **Manual (default):** a `mediaBrief` shows up in `dashboard.html` for
-  posts that need one; a human (or designer) creates the asset, uploads it
-  somewhere public (even a GitHub repo's `raw.githubusercontent.com` URL
-  works), and pastes the URL into the dashboard, which unblocks that post.
-- **Automated (a natural next step):** add an `agents/visualAgent.ts` that
-  calls an image-generation API using the `mediaBrief` as the prompt,
-  uploads the result somewhere public, and writes `mediaUrl` directly. Not
-  built here because it's a meaningfully different system (quality control
-  on generated images needs its own review step) — happy to build this
-  next if you want it.
+- **Instagram & Pinterest (automated):** `runVisualGeneration.ts` reads
+  each waiting post's `mediaBrief`, generates a real image via OpenAI's
+  Images API (`src/lib/imageGen.ts`), uploads it to a public Supabase
+  Storage bucket (`src/lib/storage.ts`), and sets `mediaUrl` on the post.
+  This does **not** skip human review: the post stays at
+  `needs_human_review`, so `dashboard.html` now shows the actual generated
+  image next to the caption, and a human still clicks Approve or Reject —
+  the quality gate is "look at the real picture before it goes out," not
+  "trust the model blindly." Requires `OPENAI_API_KEY` and a public
+  Supabase Storage bucket named `post-media` (create once: Supabase
+  dashboard → Storage → New bucket → toggle Public). Without
+  `OPENAI_API_KEY` set, this step no-ops and posts fall back to the manual
+  path below.
+- **TikTok (manual, on purpose):** TikTok needs real video, not a
+  generated image — video generation is a meaningfully heavier, higher-cost,
+  lower-reliability problem than image generation, so it's intentionally
+  not automated here. A `mediaBrief` shows up in `dashboard.html`; a human
+  (or a video generation pipeline you plug in later) creates and uploads
+  the actual clip somewhere public, and pastes the URL into the dashboard
+  to unblock that post.
 
 ## Runtime realities of GitHub Actions scheduling
 

@@ -21,6 +21,9 @@ function optional(name: string): string | undefined {
 
 export const config = {
   anthropicApiKey: () => required("ANTHROPIC_API_KEY"),
+  // Used only by the visual content agent (image generation). Optional -
+  // that agent no-ops without it, everything else runs fine.
+  openaiApiKey: () => optional("OPENAI_API_KEY"),
 
   supabaseUrl: () => required("SUPABASE_URL"),
   supabaseServiceRoleKey: () => required("SUPABASE_SERVICE_ROLE_KEY"),

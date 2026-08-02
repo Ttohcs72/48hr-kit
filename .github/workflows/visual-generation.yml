@@ -1,0 +1,33 @@
+name: Marketing Agents - Generate Visuals
+
+# Runs after content-pipeline.yml has had time to produce drafts. Finds
+# Instagram/Pinterest posts waiting on an image (their mediaBrief is set
+# but mediaUrl isn't) and generates one. TikTok isn't included here — it
+# needs real video, which this agent doesn't attempt (see README "Visual
+# content"). If OPENAI_API_KEY isn't set as a secret, this workflow still
+# runs but the script exits immediately after logging why.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 8 * * 1" # 08:00 UTC every Monday, ~2h after content-pipeline.yml
+
+jobs:
+  generate-visuals:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: agent-system/package-lock.json
+      - run: npm install
+      - run: npm run generate-visuals
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BUSINESS_SLUG: ${{ vars.BUSINESS_SLUG }}
