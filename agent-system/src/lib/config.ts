@@ -24,6 +24,9 @@ export const config = {
   // Used only by the visual content agent (image generation). Optional -
   // that agent no-ops without it, everything else runs fine.
   openaiApiKey: () => optional("OPENAI_API_KEY"),
+  // Used only by the video content agent (Google Veo, via the Gemini API).
+  // Also optional - that agent no-ops without it.
+  geminiApiKey: () => optional("GEMINI_API_KEY"),
 
   supabaseUrl: () => required("SUPABASE_URL"),
   supabaseServiceRoleKey: () => required("SUPABASE_SERVICE_ROLE_KEY"),

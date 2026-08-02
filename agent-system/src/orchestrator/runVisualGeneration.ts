@@ -35,7 +35,7 @@ async function main() {
   for (const post of posts) {
     try {
       const mediaUrl = await generateVisualForPost(profile, post);
-      await updatePost(post.id!, { mediaUrl });
+      await updatePost(post.id!, { mediaUrl, mediaType: "image" });
       generated++;
       logger.info("Image generated and attached", { postId: post.id, platform: post.platform, mediaUrl });
     } catch (err) {

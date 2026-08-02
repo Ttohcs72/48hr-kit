@@ -47,6 +47,7 @@ create table if not exists posts (
   cta_url text,
   media_brief text,
   media_url text,
+  media_type text, -- image | video, meaningful once media_url is set
   status text not null default 'draft',
   -- draft | needs_revision | needs_human_review | approved | published | failed | rejected
   scheduled_at timestamptz not null,
@@ -126,3 +127,10 @@ create policy "anon can read verification log" on verification_log for select us
 -- send {status: ...}, but if you want a hard server-side guarantee, add a
 -- Postgres trigger that rejects updates changing any column other than
 -- `status`. Left as a next step in README.md.
+
+-- ── Migration: media_type column (added for video support) ────────────
+-- If you ran this file before the video content agent existed, re-running
+-- the whole file is safe - every `create table` above is already
+-- `if not exists`, and this line adds only the new column, skipping
+-- cleanly if it's already there.
+alter table posts add column if not exists media_type text;

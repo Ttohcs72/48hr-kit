@@ -60,13 +60,26 @@ export const instagramConnector: PlatformConnector = {
     const caption = composeCaption(post);
     const igUserId = config.meta.igBusinessAccountId()!;
     const token = config.meta.pageAccessToken()!;
+    const isVideo = post.mediaType === "video";
 
     const containerRes = await fetch(`${GRAPH_BASE}/${igUserId}/media`, {
       method: "POST",
-      body: new URLSearchParams({ image_url: post.mediaUrl, caption, access_token: token }),
+      body: new URLSearchParams(
+        isVideo
+          ? { media_type: "REELS", video_url: post.mediaUrl, caption, access_token: token }
+          : { image_url: post.mediaUrl, caption, access_token: token }
+      ),
     });
     const container: any = await containerRes.json();
     if (!containerRes.ok) throw new Error(`Instagram media container failed: ${JSON.stringify(container)}`);
+
+    if (isVideo) {
+      // Unlike an image container (ready instantly), Instagram downloads
+      // and processes video server-side - publishing before it's ready
+      // fails, so we poll status_code the same way the TikTok connector
+      // waits on its own async pipeline.
+      await waitForReelsContainerReady(container.id, token);
+    }
 
     const publishRes = await fetch(`${GRAPH_BASE}/${igUserId}/media_publish`, {
       method: "POST",
@@ -96,6 +109,21 @@ export const instagramConnector: PlatformConnector = {
     };
   },
 };
+
+async function waitForReelsContainerReady(containerId: string, token: string): Promise<void> {
+  const maxAttempts = 30; // ~5 minutes
+  const pollIntervalMs = 10_000;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const res = await fetch(`${GRAPH_BASE}/${containerId}?fields=status_code&access_token=${token}`);
+    const body: any = await res.json();
+    if (body.status_code === "FINISHED") return;
+    if (body.status_code === "ERROR" || body.status_code === "EXPIRED") {
+      throw new Error(`Instagram Reels container ${containerId} failed processing: ${JSON.stringify(body)}`);
+    }
+    await new Promise((r) => setTimeout(r, pollIntervalMs));
+  }
+  throw new Error(`Instagram Reels container ${containerId} did not finish processing within the poll window.`);
+}
 
 function composeCaption(post: Post): string {
   const hashtags = post.hashtags.length ? "\n\n" + post.hashtags.map((h) => `#${h}`).join(" ") : "";

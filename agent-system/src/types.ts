@@ -56,6 +56,7 @@ export interface Post {
   ctaUrl: string;
   mediaBrief?: string; // description of the image/video that should accompany this post
   mediaUrl?: string; // publicly reachable URL of the actual asset, once one exists (see README "Visual content")
+  mediaType?: "image" | "video"; // which kind mediaUrl is - matters for platforms (like Instagram) that accept either
   status: PostStatus;
   scheduledAt: string;
   revisionCount: number;

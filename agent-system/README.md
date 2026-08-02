@@ -66,14 +66,16 @@ process. The database is the system's memory.
 | `src/agents/platformCopywriterAgent.ts` | Turns one calendar entry into a real post draft, using the right platform persona. |
 | `src/agents/brandGuardianAgent.ts` | **The master verification agent.** Checks every draft against real business facts, brand voice, banned topics, and platform norms before it's allowed to publish. |
 | `src/agents/analyticsAgent.ts` | Turns "what performed best" into plain-language lessons for the Strategist to read next time — this is the improvement loop. |
-| `src/agents/visualAgent.ts` | Generates the actual image for Instagram/Pinterest posts from the copywriter's `mediaBrief`, using `src/lib/imageGen.ts` (OpenAI Images API) and `src/lib/storage.ts` (Supabase Storage). TikTok is out of scope here — it needs real video. |
-| `src/platforms/*.ts` | One connector per platform (X, LinkedIn, Meta/Facebook/Instagram, TikTok, Pinterest) behind a shared `publish()`/`fetchMetrics()` interface. Runs in dry-run/log-only mode automatically if that platform's keys aren't set. |
+| `src/agents/visualAgent.ts` | Generates the actual image for Instagram/Pinterest posts from the copywriter's `mediaBrief`, using `src/lib/imageGen.ts` (OpenAI Images API) and `src/lib/storage.ts` (Supabase Storage). |
+| `src/agents/videoAgent.ts` | Generates a ~15-second vertical video for TikTok posts from `mediaBrief` — two ~8-second Google Veo clips (`src/lib/videoGen.ts`) stitched with ffmpeg (`src/lib/ffmpeg.ts`) and uploaded via `src/lib/storage.ts`. |
+| `src/platforms/*.ts` | One connector per platform (X, LinkedIn, Meta/Facebook/Instagram, TikTok, Pinterest) behind a shared `publish()`/`fetchMetrics()` interface. Runs in dry-run/log-only mode automatically if that platform's keys aren't set. Instagram's connector handles both photo posts and Reels (video), branching on each post's `mediaType`. |
 | `src/orchestrator/runBusinessAnalysis.ts` | Entry point 1: analyze the business website (run once, and monthly after). |
 | `src/orchestrator/runContentGeneration.ts` | Entry point 2: the full plan → write → verify pipeline (run weekly). |
 | `src/orchestrator/runPublisher.ts` | Entry point 3: publishes whatever is due and approved (run every 30 min). |
 | `src/orchestrator/runAnalyticsSync.ts` | Entry point 4: pulls metrics and extracts learnings (run daily). |
 | `src/orchestrator/runVisualGeneration.ts` | Entry point 5: generates and attaches images for Instagram/Pinterest posts waiting on media (run weekly, after content generation). No-ops cleanly if `OPENAI_API_KEY` isn't set. |
-| `.github/workflows/*.yml` | The scheduler — GitHub Actions runs these five scripts on a cron so nothing needs a server. |
+| `src/orchestrator/runVideoGeneration.ts` | Entry point 6: generates and attaches ~15s videos for TikTok posts waiting on media (run weekly, after the other two). No-ops cleanly if `GEMINI_API_KEY` isn't set. |
+| `.github/workflows/*.yml` | The scheduler — GitHub Actions runs these six scripts on a cron so nothing needs a server. |
 | `dashboard.html` | The human-in-the-loop review UI (see below). |
 
 ## Setup
@@ -100,10 +102,15 @@ process. The database is the system's memory.
    and in the Supabase dashboard create a **public** Storage bucket named
    `post-media` (Storage → New bucket → toggle Public). Then
    `npm run generate-visuals`.
-8. For hands-free operation: add all the same values as GitHub Actions
+8. Optional — automated TikTok video: get a `GEMINI_API_KEY` on a paid tier
+   (aistudio.google.com/apikey), make sure `ffmpeg` is installed locally
+   (`ffmpeg -version` to check), and add your Supabase Storage domain to
+   your TikTok app's allowlist (see "TikTok's domain allowlist" below).
+   Then `npm run generate-videos`.
+9. For hands-free operation: add all the same values as GitHub Actions
    **repository secrets** (tokens/keys) and **repository variables**
    (non-secret config like `BUSINESS_SLUG`, `ACTIVE_PLATFORMS`) — Settings →
-   Secrets and variables → Actions, both tabs. The five workflows in
+   Secrets and variables → Actions, both tabs. The six workflows in
    `.github/workflows/` then run on their own schedule.
 
 ## Getting your first real post out: X (Twitter)
@@ -160,6 +167,7 @@ Once running, these steps require zero human input:
 - Reading the business's website and re-reading it monthly for changes
 - Researching trends and planning the calendar
 - Writing every platform's post in that platform's native style
+- Generating the accompanying image (Instagram/Pinterest) or ~15s video (TikTok)
 - Verifying every post against the business's real facts and voice
 - Publishing on schedule
 - Pulling engagement data and extracting lessons that improve future content
@@ -172,12 +180,16 @@ The ~5% that stays human, and why it can't be automated away:
 2. **Meta and TikTok app review.** Both require a human to submit the app
    for manual review before autonomous posting permissions are granted.
    Budget 1-2 weeks for Meta, similar for TikTok's Content Posting API audit.
-3. **Visual assets — mostly automated, TikTok is the exception.** Instagram,
-   TikTok, and Pinterest cannot accept a text-only post — the
+   TikTok also requires a one-time domain-allowlist step before it will
+   fetch generated videos — see "TikTok's domain allowlist" below.
+3. **Visual/video assets are generated, but always human-previewed.**
+   Instagram, TikTok, and Pinterest cannot accept a text-only post — the
    Graph/TikTok/Pinterest APIs reject it outright. `runVisualGeneration.ts`
-   generates and attaches real images for Instagram/Pinterest automatically;
-   TikTok still needs a human to produce and attach a video. See "Visual
-   content" below.
+   and `runVideoGeneration.ts` generate and attach real images/video
+   automatically, but the resulting post still waits at
+   `needs_human_review` so a human looks at the actual picture or video
+   before it can be approved — see "Visual content" below for why that
+   review step is kept even though generation itself isn't.
 4. **The confidence safety valve.** Brand Guardian intentionally escalates
    instead of guessing when it's unsure. Raising `AUTO_PUBLISH_MIN_SCORE`
    trades hands-free-ness for safety; that's a business decision, not
@@ -186,28 +198,52 @@ The ~5% that stays human, and why it can't be automated away:
    token) expire and need periodic manual renewal unless you build a
    refresh-token rotation job — not included here, noted as a next step.
 
-## Visual content
+## Visual content (images and video)
 
-- **Instagram & Pinterest (automated):** `runVisualGeneration.ts` reads
-  each waiting post's `mediaBrief`, generates a real image via OpenAI's
-  Images API (`src/lib/imageGen.ts`), uploads it to a public Supabase
-  Storage bucket (`src/lib/storage.ts`), and sets `mediaUrl` on the post.
-  This does **not** skip human review: the post stays at
-  `needs_human_review`, so `dashboard.html` now shows the actual generated
-  image next to the caption, and a human still clicks Approve or Reject —
-  the quality gate is "look at the real picture before it goes out," not
-  "trust the model blindly." Requires `OPENAI_API_KEY` and a public
+- **Instagram & Pinterest images (automated):** `runVisualGeneration.ts`
+  reads each waiting post's `mediaBrief`, generates a real image via
+  OpenAI's Images API (`src/lib/imageGen.ts`), uploads it to a public
+  Supabase Storage bucket (`src/lib/storage.ts`), and sets `mediaUrl` +
+  `mediaType: "image"` on the post. Requires `OPENAI_API_KEY` and a public
   Supabase Storage bucket named `post-media` (create once: Supabase
-  dashboard → Storage → New bucket → toggle Public). Without
-  `OPENAI_API_KEY` set, this step no-ops and posts fall back to the manual
-  path below.
-- **TikTok (manual, on purpose):** TikTok needs real video, not a
-  generated image — video generation is a meaningfully heavier, higher-cost,
-  lower-reliability problem than image generation, so it's intentionally
-  not automated here. A `mediaBrief` shows up in `dashboard.html`; a human
-  (or a video generation pipeline you plug in later) creates and uploads
-  the actual clip somewhere public, and pastes the URL into the dashboard
-  to unblock that post.
+  dashboard → Storage → New bucket → toggle Public).
+- **TikTok video (automated):** `runVideoGeneration.ts` reads each waiting
+  TikTok post's `mediaBrief`, generates two ~8-second clips with Google's
+  Veo model via the Gemini API (`src/lib/videoGen.ts`) — an opening/hook
+  shot and a closing payoff/CTA shot — and stitches them into one
+  ~15-16-second file with `ffmpeg` (`src/lib/ffmpeg.ts`, requires the
+  `ffmpeg` binary on PATH; already present on GitHub Actions'
+  `ubuntu-latest` runners). Requires `GEMINI_API_KEY` on a **paid** Gemini
+  API tier — Veo isn't available on the free tier. Deliberately not built
+  on OpenAI's Sora: Sora's Videos API is being shut down entirely on
+  2026-09-24 with no announced successor, a bad foundation for something
+  meant to run unattended for years.
+- **Neither skips human review.** Both leave the post at
+  `needs_human_review`, so `dashboard.html` shows the actual generated
+  image or a playable video next to the caption, and a human still clicks
+  Approve or Reject — the quality gate is "look at the real thing before it
+  goes out," not "trust the model blindly." Without the relevant API key
+  set, each step no-ops cleanly and posts fall back to the manual path.
+- **Manual fallback (any platform, any asset type):** paste a public
+  image/video URL directly into `dashboard.html`'s Attach field — useful
+  for Pinterest video pins (not automated here — Pinterest's video upload
+  flow is a multi-step process meaningfully different from its image flow)
+  or for overriding a generated asset you don't like.
+- **TikTok's domain allowlist.** TikTok's `PULL_FROM_URL` publishing method
+  (used in `src/platforms/tiktok.ts`) requires the source domain — your
+  Supabase Storage domain — to be added and verified in the TikTok app's
+  developer settings before TikTok's servers will fetch from it. This is a
+  one-time manual step in the TikTok developer portal, not something the
+  code can do for you.
+- **Instagram Reels exist in the code but aren't auto-scheduled.**
+  `src/platforms/meta.ts`'s Instagram connector fully supports publishing
+  video (`mediaType: "video"` → Reels, with the async processing wait Meta
+  requires). It's just not wired into the *automated* generation pipeline
+  (`VIDEO_CAPABLE_PLATFORMS` in `videoAgent.ts` is TikTok-only), to avoid
+  the image and video agents racing to claim the same Instagram post. If
+  you want a specific Instagram post to be a Reel instead of a photo,
+  attach a video URL and set `media_type: 'video'` on it manually (or in a
+  one-off script) before it's approved.
 
 ## Runtime realities of GitHub Actions scheduling
 
@@ -251,5 +287,11 @@ or `POSTS_PER_PLATFORM_PER_DAY` up.
   only business-specific config — running this for a second business is a
   second set of repo variables/secrets (or a second Supabase project),
   reusing all the same code.
-- **Image/video generation**, discussed above — the biggest missing piece
-  for full autonomy on Instagram/TikTok/Pinterest specifically.
+- **Generated video quality and cost, specifically.** Video generation is
+  the newest, least predictable piece here — two independent ~8-second Veo
+  clips stitched together won't always read as one coherent shot, and each
+  generation costs real money and several minutes. Watch the first couple
+  weeks of TikTok output in `dashboard.html` closely before trusting it,
+  and keep an eye on Gemini API spend.
+- **Pinterest video pins** aren't automated (see "Visual content" above) —
+  a documented gap, not an oversight, if you want to close it later.

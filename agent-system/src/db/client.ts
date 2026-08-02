@@ -121,6 +121,7 @@ export async function insertPost(p: Post): Promise<Post> {
       cta_url: p.ctaUrl,
       media_brief: p.mediaBrief,
       media_url: p.mediaUrl,
+      media_type: p.mediaType,
       status: p.status,
       scheduled_at: p.scheduledAt,
       revision_count: p.revisionCount,
@@ -138,6 +139,7 @@ export async function updatePost(id: string, patch: Partial<Post>): Promise<void
   if (patch.content !== undefined) update.content = patch.content;
   if (patch.hashtags !== undefined) update.hashtags = patch.hashtags;
   if (patch.mediaUrl !== undefined) update.media_url = patch.mediaUrl;
+  if (patch.mediaType !== undefined) update.media_type = patch.mediaType;
   if (patch.status !== undefined) update.status = patch.status;
   if (patch.revisionCount !== undefined) update.revision_count = patch.revisionCount;
   if (patch.brandGuardianScore !== undefined) update.brand_guardian_score = patch.brandGuardianScore;
@@ -196,6 +198,7 @@ function rowToPost(d: any): Post {
     ctaUrl: d.cta_url,
     mediaBrief: d.media_brief,
     mediaUrl: d.media_url ?? undefined,
+    mediaType: d.media_type ?? undefined,
     status: d.status,
     scheduledAt: d.scheduled_at,
     revisionCount: d.revision_count,
