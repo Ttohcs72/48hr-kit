@@ -1,0 +1,38 @@
+name: Marketing Agents - Generate Content Calendar
+
+# Strategist + Trend Research + all six platform copywriters + Brand
+# Guardian, end to end. Runs weekly and plans the next CONTENT_CALENDAR_DAYS
+# days of posts (default 7 days x 2/platform/day). Every post this produces
+# is either "approved" (Brand Guardian cleared it, AUTO_PUBLISH_ENABLED lets
+# it go out unattended) or "needs_human_review" (shows up in dashboard.html).
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * 1" # 06:00 UTC every Monday
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: agent-system/package-lock.json
+      - run: npm install
+      - run: npm run generate-calendar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BUSINESS_WEBSITE_URL: ${{ vars.BUSINESS_WEBSITE_URL }}
+          BUSINESS_SLUG: ${{ vars.BUSINESS_SLUG }}
+          AUTO_PUBLISH_ENABLED: ${{ vars.AUTO_PUBLISH_ENABLED }}
+          AUTO_PUBLISH_MIN_SCORE: ${{ vars.AUTO_PUBLISH_MIN_SCORE }}
+          ACTIVE_PLATFORMS: ${{ vars.ACTIVE_PLATFORMS }}
+          CONTENT_CALENDAR_DAYS: ${{ vars.CONTENT_CALENDAR_DAYS }}
+          POSTS_PER_PLATFORM_PER_DAY: ${{ vars.POSTS_PER_PLATFORM_PER_DAY }}
